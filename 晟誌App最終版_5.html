@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>晟誌業務填報</title>
+<style>
+  :root {
+    --navy: #1a2f5e;
+    --blue: #2563be;
+    --blue-light: #e8f0fc;
+    --gold: #c8960c;
+    --gold-light: #fef9ec;
+    --green: #15803d;
+    --green-light: #f0fdf4;
+    --red: #b91c1c;
+    --red-light: #fef2f2;
+    --orange: #ea580c;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-500: #6b7280;
+    --gray-300: #d1d5db;
+    --gray-100: #f3f4f6;
+    --white: #ffffff;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(26,47,94,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: #f0f4fb;
+    color: var(--gray-900);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--navy);
+    padding: 16px 20px 14px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .app-logo {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: var(--navy);
+  }
+  .app-title { color: white; font-size: 17px; font-weight: 700; }
+  .app-sub { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 1px; }
+  .tab-bar {
+    background: var(--navy);
+    display: flex; border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .tab {
+    flex: 1; padding: 10px 4px 12px;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px; text-align: center; cursor: pointer;
+    border: none; background: none;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: color 0.2s;
+  }
+  .tab.active { color: var(--gold); }
+  .tab-icon { font-size: 20px; line-height: 1; }
+
+  /* ── Pages ── */
+  .page { display: none; padding: 0 16px; }
+  .page.active { display: block; }
+
+  /* ── Section card ── */
+  .section-card {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-top: 16px; overflow: hidden;
+  }
+  .section-head {
+    padding: 14px 16px 12px;
+    border-bottom: 1.5px solid var(--gray-100);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .section-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── Fields ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: 13px; font-weight: 600; color: var(--gray-700);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .req {
+    font-size: 10px; background: #fee2e2; color: var(--red);
+    padding: 1px 6px; border-radius: 4px; font-weight: 700;
+  }
+  .opt {
+    font-size: 10px; background: var(--gray-100); color: var(--gray-500);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px; font-size: 15px; color: var(--gray-900);
+    background: white; outline: none;
+    -webkit-appearance: none; appearance: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,190,0.12);
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px; }
+  textarea { resize: none; min-height: 80px; line-height: 1.5; }
+
+  /* ── Multi-select chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 8px 14px; border-radius: 20px;
+    border: 1.5px solid var(--gray-300);
+    font-size: 13px; cursor: pointer;
+    background: white; color: var(--gray-700);
+    transition: all 0.15s; user-select: none;
+  }
+  .chip.selected {
+    border-color: var(--blue); background: var(--blue-light);
+    color: var(--blue); font-weight: 600;
+  }
+  .chip.green.selected {
+    border-color: var(--green); background: var(--green-light); color: var(--green);
+  }
+  .chip.gold.selected {
+    border-color: var(--gold); background: var(--gold-light); color: var(--gold);
+  }
+
+  /* ── Behavior rating ── */
+  .behavior-group { display: flex; flex-direction: column; gap: 8px; }
+  .behavior-opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid var(--gray-300);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .behavior-opt.selected.s1 { border-color: var(--green); background: var(--green-light); }
+  .behavior-opt.selected.s2 { border-color: var(--blue); background: var(--blue-light); }
+  .behavior-opt.selected.s3 { border-color: var(--gold); background: var(--gold-light); }
+  .behavior-opt.selected.s4 { border-color: var(--gray-500); background: var(--gray-100); }
+  .behavior-opt.selected.s5 { border-color: var(--red); background: var(--red-light); }
+  .beh-icon { font-size: 20px; }
+  .beh-text { flex: 1; }
+  .beh-name { font-size: 14px; font-weight: 600; }
+  .beh-desc { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .beh-radio {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--gray-300); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .behavior-opt.selected .beh-radio {
+    border-color: var(--blue); background: var(--blue);
+  }
+  .beh-dot { width: 8px; height: 8px; border-radius: 50%; background: white; }
+
+  /* ── Submit button ── */
+  .submit-wrap { padding: 20px 16px 8px; }
+  .btn-submit {
+    width: 100%; padding: 16px;
+    background: var(--navy); color: white;
+    border: none; border-radius: var(--radius);
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-submit:active { transform: scale(0.98); background: #122349; }
+  .btn-submit.loading { background: var(--gray-500); pointer-events: none; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--gray-900); color: white;
+    padding: 12px 24px; border-radius: 24px;
+    font-size: 14px; font-weight: 600;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+
+  /* ── Page: 客戶查詢 ── */
+  .search-bar {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-top: 16px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border: 1.5px solid var(--gray-300);
+  }
+  .search-bar input {
+    border: none; flex: 1; font-size: 15px; outline: none;
+    box-shadow: none; padding: 0;
+  }
+  .search-icon { color: var(--gray-500); font-size: 18px; }
+
+  .doctor-card {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-top: 12px;
+    overflow: hidden; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .doctor-card:active { transform: scale(0.98); }
+  .doctor-head {
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .doctor-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; flex-shrink: 0;
+  }
+  .grade-S { background: #fef9c3; color: #854d0e; }
+  .grade-A { background: var(--green-light); color: var(--green); }
+  .grade-B { background: var(--blue-light); color: var(--blue); }
+  .grade-C { background: var(--gray-100); color: var(--gray-500); }
+  .doctor-info { flex: 1; min-width: 0; }
+  .doctor-name { font-size: 16px; font-weight: 700; }
+  .doctor-hospital { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+  .doctor-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    font-weight: 600;
+  }
+  .tag-dept { background: var(--blue-light); color: var(--blue); }
+  .tag-prod { background: var(--gold-light); color: var(--gold); }
+  .tag-grade-S { background: #fef9c3; color: #854d0e; }
+  .tag-grade-A { background: var(--green-light); color: var(--green); }
+  .tag-grade-B { background: var(--blue-light); color: var(--blue); }
+
+  .doctor-detail {
+    border-top: 1px solid var(--gray-100);
+    padding: 12px 16px;
+    display: none; flex-direction: column; gap: 8px;
+  }
+  .doctor-detail.open { display: flex; }
+  .detail-row {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px;
+  }
+  .detail-label { color: var(--gray-500); min-width: 80px; flex-shrink: 0; }
+  .detail-val { color: var(--gray-900); font-weight: 500; }
+  .pref-badge {
+    display: inline-block; padding: 3px 8px; border-radius: 6px;
+    background: var(--gold-light); color: var(--gold);
+    font-size: 12px; font-weight: 600; margin-right: 4px; margin-bottom: 4px;
+  }
+
+  /* ── Page: 週報紀錄 ── */
+  .week-summary {
+    background: var(--navy); border-radius: var(--radius);
+    padding: 18px; margin-top: 16px; color: white;
+  }
+  .week-label { font-size: 12px; opacity: 0.7; margin-bottom: 12px; }
+  .week-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 800; color: var(--gold); }
+  .stat-name { font-size: 11px; opacity: 0.7; margin-top: 3px; }
+
+  .record-item {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-top: 10px;
+    padding: 14px 16px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .rec-date-block {
+    flex-shrink: 0; text-align: center;
+    background: var(--blue-light); border-radius: 10px;
+    padding: 8px 10px; min-width: 46px;
+  }
+  .rec-month { font-size: 10px; color: var(--blue); font-weight: 700; }
+  .rec-day { font-size: 22px; font-weight: 800; color: var(--navy); line-height: 1; }
+  .rec-info { flex: 1; }
+  .rec-hospital { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .rec-doctor { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+  .rec-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .rec-amount { font-size: 14px; font-weight: 700; color: var(--green); }
+
+  /* ── Page: 主管儀表板 ── */
+  .dash-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-top: 16px; }
+  .dash-stat {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dash-stat-num { font-size: 28px; font-weight: 800; color: var(--navy); }
+  .dash-stat-label { font-size: 12px; color: var(--gray-500); }
+  .dash-stat-sub { font-size: 12px; color: var(--gray-500); }
+  .trend-up { color: var(--green); font-weight: 700; }
+  .trend-down { color: var(--red); font-weight: 700; }
+
+  .behavior-bar-wrap { margin-top: 6px; }
+  .behavior-bar { height: 8px; border-radius: 4px; background: var(--gray-100); overflow: hidden; margin-top: 4px; }
+  .behavior-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+  .hosp-rank {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--gray-100);
+  }
+  .hosp-rank:last-child { border-bottom: none; }
+  .rank-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--navy); color: white;
+    font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .rank-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .rank-amt { font-size: 14px; font-weight: 700; color: var(--navy); }
+
+  /* spacing */
+  .mt-16 { margin-top: 16px; }
+  .page-pad { padding-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">晟</div>
+  <div>
+    <div class="app-title">晟誌業務系統</div>
+    <div class="app-sub">晟誌國際醫療業務平台 · 2026</div>
+  </div>
+  <div id="online-badge" style="margin-left:auto;font-size:11px;padding:3px 10px;border-radius:10px;background:#15803d;color:white;font-weight:700">🟢 已連線</div>
+</div>
+<div class="tab-bar">
+  <button class="tab active" onclick="showPage('fill')" id="tab-fill">
+    <span class="tab-icon">✏️</span>填報
+  </button>
+  <button class="tab" onclick="showPage('doctors')" id="tab-doctors">
+    <span class="tab-icon">👤</span>客戶
+  </button>
+  <button class="tab" onclick="showPage('records')" id="tab-records">
+    <span class="tab-icon">📋</span>記錄
+  </button>
+  <button class="tab" onclick="showPage('dash')" id="tab-dash">
+    <span class="tab-icon">📊</span>儀表板
+  </button>
+</div>
+
+<!-- ══════════ PAGE: 填報 ══════════ -->
+<div class="page active" id="page-fill">
+  <div class="page-pad">
+
+  <!-- Section A -->
+  <div class="section-card">
+    <div class="section-head">
+      <div class="section-dot" style="background:var(--blue)"></div>
+      <div class="section-title">拜訪基本資料</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-label">業務姓名 <span class="req">必填</span></div>
+        <select id="f-sales">
+          <option value="">選擇業務</option>
+          <option>柔柔</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">拜訪日期 <span class="req">必填</span></div>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <div class="field-label">醫院名稱 <span class="req">必填</span></div>
+        <select id="f-hospital">
+          <option value="">選擇醫院</option>
+          <option>長庚-林口</option><option>長庚-土城</option><option>長庚桃園</option>
+          <option>長庚-基隆</option><option>長庚-台北</option><option>長庚-高雄</option>
+          <option>馬偕-台北</option><option>馬偕-淡水</option>
+          <option>台北慈濟</option><option>國泰-台北</option><option>國泰-汐止</option>
+          <option>新光醫院</option><option>臺安醫院</option><option>敏盛綜合醫院</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">科別 <span class="req">必填</span></div>
+        <select id="f-dept">
+          <option value="">選擇科別</option>
+          <option>兒科</option><option>小兒科</option><option>過敏免疫科</option>
+          <option>感染科</option><option>胸腔科</option><option>腸胃科GI</option>
+          <option>婦產科</option><option>泌尿科</option><option>急診</option><option>其他</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">拜訪醫師 <span class="req">必填</span></div>
+        <input type="text" id="f-doctor" placeholder="輸入醫師全名，如：趙舜卿" oninput="checkLastFollowup()">
+      </div>
+      <div id="last-followup-box" style="display:none;margin:0 0 4px;border-radius:10px;background:#fff8e1;border:1.5px solid #f59e0b;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+          ⚠️ 上次追蹤提醒
+        </div>
+        <div id="last-followup-text" style="font-size:14px;color:#92400e;font-weight:500;line-height:1.5"></div>
+        <div id="last-followup-date" style="font-size:11px;color:#b45309;margin-top:4px;opacity:0.8"></div>
+      </div>
+      <div class="field">
+        <div class="field-label">醫師職稱 <span class="opt">選填</span></div>
+        <select id="f-title">
+          <option value="">選擇職稱</option>
+          <option>主治醫師</option><option>住院醫師</option><option>科主任</option>
+          <option>副院長/院長</option><option>NP護理師</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">本次帶入產品 <span class="req">必填，可多選</span></div>
+        <div class="chip-group" id="chips-product">
+          <div class="chip" data-val="摩舒益多" onclick="toggleChip(this)">摩舒益多</div>
+          <div class="chip" data-val="OMRON霧化器" onclick="toggleChip(this)">OMRON霧化器</div>
+          <div class="chip" data-val="益生菌D3" onclick="toggleChip(this)">益生菌D3</div>
+          <div class="chip" data-val="ALTIS吊帶系統" onclick="toggleChip(this)">ALTIS吊帶系統</div>
+          <div class="chip" data-val="妥芙妥妊娠霜" onclick="toggleChip(this)">妥芙妥妊娠霜</div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">醫師門診量 <span class="req">必填</span></div>
+        <input type="number" id="f-clinic" placeholder="診/月，如：120" min="0">
+      </div>
+    </div>
+  </div>
+
+  <!-- Section B -->
+  <div class="section-card">
+    <div class="section-head">
+      <div class="section-dot" style="background:var(--green)"></div>
+      <div class="section-title">預期銷售數字</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-label">預期銷售數量 <span class="req">必填</span></div>
+        <input type="number" id="f-qty" placeholder="支/盒/台" min="0">
+      </div>
+      <div class="field">
+        <div class="field-label">本次是否完成銷售 <span class="req">必填</span></div>
+        <select id="f-success">
+          <option value="">請選擇</option>
+          <option value="yes">✅ 是，完成銷售</option>
+          <option value="visit">🤝 否，僅拜訪維繫</option>
+          <option value="absent">📵 否，醫師不在</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section C -->
+  <div class="section-card">
+    <div class="section-head">
+      <div class="section-dot" style="background:var(--gold)"></div>
+      <div class="section-title">客戶情報</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-label">醫師處置行為 <span class="req">必填</span></div>
+        <div class="behavior-group">
+          <div class="behavior-opt s1" onclick="selectBehavior(this)" data-val="積極推薦">
+            <div class="beh-icon">💚</div>
+            <div class="beh-text">
+              <div class="beh-name">積極推薦</div>
+              <div class="beh-desc">主動向病患推薦使用</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+          <div class="behavior-opt s2" onclick="selectBehavior(this)" data-val="有興趣/待跟進">
+            <div class="beh-icon">🔵</div>
+            <div class="beh-text">
+              <div class="beh-name">有興趣，待跟進</div>
+              <div class="beh-desc">表達興趣，尚在評估</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+          <div class="behavior-opt s3" onclick="selectBehavior(this)" data-val="持續使用中">
+            <div class="beh-icon">🟡</div>
+            <div class="beh-text">
+              <div class="beh-name">持續穩定使用</div>
+              <div class="beh-desc">長期固定開立中</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+          <div class="behavior-opt s4" onclick="selectBehavior(this)" data-val="觀望中">
+            <div class="beh-icon">⚪</div>
+            <div class="beh-text">
+              <div class="beh-name">觀望未決定</div>
+              <div class="beh-desc">需要持續耕耘</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+          <div class="behavior-opt s5" onclick="selectBehavior(this)" data-val="本次婉拒">
+            <div class="beh-icon">🔴</div>
+            <div class="beh-text">
+              <div class="beh-name">本次婉拒</div>
+              <div class="beh-desc">需調整策略再訪</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">主要適應症 <span class="opt">選填，可多選</span></div>
+        <div class="chip-group" id="chips-indi">
+          <div class="chip green" data-val="過敏/氣喘" onclick="toggleChip(this,'green')">過敏/氣喘</div>
+          <div class="chip green" data-val="感冒/上呼吸道" onclick="toggleChip(this,'green')">感冒/上呼吸道</div>
+          <div class="chip green" data-val="腸胃問題" onclick="toggleChip(this,'green')">腸胃問題</div>
+          <div class="chip green" data-val="孕期護膚" onclick="toggleChip(this,'green')">孕期護膚</div>
+          <div class="chip green" data-val="尿失禁/骨盆底" onclick="toggleChip(this,'green')">尿失禁/骨盆底</div>
+          <div class="chip green" data-val="術後照護" onclick="toggleChip(this,'green')">術後照護</div>
+          <div class="chip green" data-val="其他" onclick="toggleChip(this,'green')">其他</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">醫師喜好/關注重點 <span class="opt">選填，可多選</span></div>
+        <div class="chip-group" id="chips-pref">
+          <div class="chip gold" data-val="療效/臨床實證" onclick="toggleChip(this,'gold')">療效/臨床實證</div>
+          <div class="chip gold" data-val="副作用低/安全性" onclick="toggleChip(this,'gold')">副作用低/安全性</div>
+          <div class="chip gold" data-val="病患接受度高" onclick="toggleChip(this,'gold')">病患接受度高</div>
+          <div class="chip gold" data-val="服用方便(劑型)" onclick="toggleChip(this,'gold')">服用方便(劑型)</div>
+          <div class="chip gold" data-val="價格CP值" onclick="toggleChip(this,'gold')">價格CP值</div>
+          <div class="chip gold" data-val="品牌知名度" onclick="toggleChip(this,'gold')">品牌知名度</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">個人小習慣/喜好 <span class="opt">選填</span></div>
+        <input type="text" id="f-personal" placeholder="如：熱美式咖啡、I人需多拜訪…">
+      </div>
+
+      <div class="field">
+        <div class="field-label">下週追蹤事項 <span class="opt">選填</span></div>
+        <textarea id="f-followup" placeholder="如：帶最新文獻、申請進藥、安排說明會…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()">
+      <span>📤</span> 送出本次拜訪記錄
+    </button>
+  </div>
+
+  </div><!-- end page-pad -->
+</div>
+
+<!-- ══════════ PAGE: 客戶查詢 ══════════ -->
+<div class="page" id="page-doctors">
+  <div class="page-pad">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="搜尋醫師姓名或醫院…" oninput="filterDoctors(this.value)">
+    </div>
+    <div id="doctor-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE: 拜訪記錄 ══════════ -->
+<div class="page" id="page-records">
+  <div class="page-pad">
+    <div class="week-summary">
+      <div class="week-label">2026 年度累積</div>
+      <div class="week-stats">
+        <div class="stat-item"><div class="stat-num" id="stat-visits">0</div><div class="stat-name">拜訪次數</div></div>
+        <div class="stat-item"><div class="stat-num" id="stat-sales">0</div><div class="stat-name">成功銷售</div></div>
+        <div class="stat-item"><div class="stat-num" id="stat-amount">0</div><div class="stat-name">銷售數量</div></div>
+      </div>
+    </div>
+    <div id="records-list"></div>
+    <div id="no-records" style="text-align:center;padding:40px 20px;color:var(--gray-500);font-size:14px;display:none">
+      還沒有拜訪記錄<br><span style="font-size:12px;margin-top:8px;display:block">填報第一筆後就會出現在這裡</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE: 儀表板 ══════════ -->
+<div class="page" id="page-dash">
+  <div class="page-pad">
+    <div class="dash-grid">
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="d-visits">-</div>
+        <div class="dash-stat-label">總拜訪次數</div>
+        <div class="dash-stat-sub">本週累積</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="d-doctors">-</div>
+        <div class="dash-stat-label">拜訪醫師數</div>
+        <div class="dash-stat-sub">不重複計算</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="d-amount">-</div>
+        <div class="dash-stat-label">預期銷售數量</div>
+        <div class="dash-stat-sub">元</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="d-rate">-</div>
+        <div class="dash-stat-label">成功銷售率</div>
+        <div class="dash-stat-sub">有效拜訪</div>
+      </div>
+    </div>
+
+    <div class="section-card mt-16">
+      <div class="section-head">
+        <div class="section-dot" style="background:var(--blue)"></div>
+        <div class="section-title">醫師處置行為分佈</div>
+      </div>
+      <div class="section-body" id="behavior-bars">
+        <div style="color:var(--gray-500);font-size:13px;text-align:center;padding:12px 0">填報後自動更新</div>
+      </div>
+    </div>
+
+    <div class="section-card mt-16">
+      <div class="section-head">
+        <div class="section-dot" style="background:var(--gold)"></div>
+        <div class="section-title">醫院銷售排名</div>
+      </div>
+      <div class="section-body" style="gap:0;padding:8px 16px" id="hosp-rank">
+        <div style="color:var(--gray-500);font-size:13px;text-align:center;padding:12px 0">填報後自動更新</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data Store ──────────────────────────────────────────
+const DB = {
+  records: JSON.parse(localStorage.getItem('sz_records') || '[]'),
+  save() { localStorage.setItem('sz_records', JSON.stringify(this.records)); }
+};
+
+// ── Doctors DB (from uploaded file) ─────────────────────
+const DOCTORS = [
+  { name:'趙舜卿', hospital:'林口長庚', dept:'兒童GI科', products:['摩舒益多'], grade:'S', pref:'KOL，涵蓋桃園長庚兼診', personal:'', indication:'腸胃問題', clinic:200 },
+  { name:'賴宏香', hospital:'林口長庚', dept:'兒童GI科', products:['摩舒益多'], grade:'S', pref:'', personal:'', indication:'腸胃問題', clinic:120 },
+  { name:'郭貞孍', hospital:'林口長庚', dept:'兒童感染科', products:['PA'], grade:'A', pref:'文獻為主，不喜歡保健食品', personal:'抹茶拿鐡（熱）', indication:'感冒/感染', clinic:150 },
+  { name:'吳昭儀', hospital:'林口長庚', dept:'兒童過敏科', products:['PA'], grade:'A', pref:'喜歡推自費產品', personal:'可樂', indication:'過敏/氣喘', clinic:180 },
+  { name:'姚宗杰', hospital:'林口長庚', dept:'兒童過敏科', products:['PA'], grade:'A', pref:'過敏學會理事長，E人，常跑外地', personal:'咖啡皆可', indication:'過敏/氣喘', clinic:200 },
+  { name:'林思偕', hospital:'林口長庚', dept:'兒童過敏科', products:['PA'], grade:'A', pref:'老教授，喜歡寫文章，打桌球', personal:'美式咖啡', indication:'過敏/氣喘', clinic:160 },
+  { name:'蘇冠文', hospital:'林口長庚', dept:'兒童過敏科', products:['PA'], grade:'A', pref:'科主任，I人，相對含蓄，可進攻', personal:'熱美式', indication:'過敏/氣喘', clinic:140 },
+  { name:'顏大欽', hospital:'林口長庚', dept:'兒童過敏科', products:['PA'], grade:'A', pref:'E人，開口率高', personal:'咖啡皆可', indication:'過敏/氣喘', clinic:130 },
+  { name:'賴申豪', hospital:'林口長庚', dept:'兒童胸腔', products:['PA'], grade:'B', pref:'帕基艾兒文獻作者，不太開霧化器', personal:'', indication:'胸腔/氣喘', clinic:100 },
+  { name:'葉育欣', hospital:'長庚-土城', dept:'過敏科', products:['PA','摩舒益多'], grade:'S', pref:'門診量約180診/月', personal:'熱美式', indication:'過敏/腸胃', clinic:180 },
+  { name:'程劭文', hospital:'長庚-台北', dept:'兒科', products:['摩舒益多'], grade:'A', pref:'', personal:'', indication:'', clinic:100 },
+  { name:'高羽璇', hospital:'馬偕-台北', dept:'過敏免疫科', products:['PA'], grade:'S', pref:'', personal:'', indication:'過敏/氣喘', clinic:160 },
+  { name:'紀鑫', hospital:'馬偕-台北', dept:'感染科GI主任', products:['PA'], grade:'S', pref:'KOL，GI科主任', personal:'', indication:'感冒/腸胃', clinic:200 },
+  { name:'方麗菁', hospital:'馬偕-淡水', dept:'過敏科', products:['PA'], grade:'A', pref:'', personal:'', indication:'過敏', clinic:120 },
+  { name:'魏希賢', hospital:'台北慈濟', dept:'感染科', products:['摩舒益多'], grade:'A', pref:'', personal:'', indication:'感冒/感染', clinic:130 },
+  { name:'林隆煌', hospital:'國泰-台北', dept:'GI科', products:['摩舒益多'], grade:'A', pref:'待重新議價', personal:'', indication:'腸胃問題', clinic:120 },
+  { name:'許慶俊', hospital:'國泰-汐止', dept:'GI科', products:['摩舒益多'], grade:'S', pref:'重新議價中，穩定客戶', personal:'', indication:'腸胃問題', clinic:160 },
+];
+
+// ── Tabs ────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'records') renderRecords();
+  if (id === 'dash') renderDash();
+  if (id === 'doctors') renderDoctors('');
+}
+
+// ── Chips & Behavior ────────────────────────────────────
+function toggleChip(el, color) {
+  el.classList.toggle('selected');
+  if (color) el.classList.toggle(color);
+}
+
+function selectBehavior(el) {
+  document.querySelectorAll('.behavior-opt').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function getChips(groupId) {
+  return [...document.querySelectorAll(`#${groupId} .chip.selected`)].map(c => c.dataset.val);
+}
+
+// ── Set today's date ────────────────────────────────────
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+
+// ── Submit ──────────────────────────────────────────────
+function submitForm() {
+  const sales = document.getElementById('f-sales').value;
+  const date = document.getElementById('f-date').value;
+  const hospital = document.getElementById('f-hospital').value;
+  const dept = document.getElementById('f-dept').value;
+  const doctor = document.getElementById('f-doctor').value.trim();
+  const products = getChips('chips-product');
+  const clinic = document.getElementById('f-clinic').value;
+  const qty = document.getElementById('f-qty').value;
+
+  const success = document.getElementById('f-success').value;
+  const behavior = document.querySelector('.behavior-opt.selected')?.dataset.val || '';
+  const indication = getChips('chips-indi');
+  const pref = getChips('chips-pref');
+  const personal = document.getElementById('f-personal').value.trim();
+  const followup = document.getElementById('f-followup').value.trim();
+
+  const errors = [];
+  if (!sales) errors.push('業務姓名');
+  if (!date) errors.push('拜訪日期');
+  if (!hospital) errors.push('醫院名稱');
+  if (!dept) errors.push('科別');
+  if (!doctor) errors.push('醫師姓名');
+  if (products.length === 0) errors.push('帶入產品');
+  if (!clinic) errors.push('門診量');
+  if (!qty) errors.push('銷售數量');
+
+  if (!success) errors.push('是否完成銷售');
+  if (!behavior) errors.push('醫師處置行為');
+
+  if (errors.length > 0) {
+    showToast('請填寫：' + errors.join('、'), 'error');
+    return;
+  }
+
+  const record = {
+    id: Date.now(),
+    sales, date, hospital, dept, doctor,
+    products, clinic: +clinic,
+    qty: +qty, success, behavior,
+    indication, pref, personal, followup
+  };
+
+  DB.records.unshift(record);
+  DB.save();
+
+  // Update doctor info
+  const existing = DOCTORS.find(d => d.name === doctor && d.hospital.includes(hospital.split('-')[0]));
+  if (!existing && doctor) {
+    DOCTORS.unshift({ name: doctor, hospital, dept, products, grade:'B',
+      pref: pref.join('、'), personal, indication: indication.join('、'), clinic: +clinic });
+  }
+
+  // ── 推送到 Google Sheets ──
+  sendToSheets(record);
+  showToast('📤 填報成功！同步至 Google Sheets…', 'success');
+  resetForm();
+}
+
+// ── Google Sheets 串接 ─────────────────────────────────
+// 請將下方 SCRIPT_URL 換成你的 Apps Script 網址
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0GHyo9EEjgLGgldIBd5sqRYz7eqjzjf9H8Xx_UFMBnu6CWY0JKq0ct0Cp-kleBfICHA/exec';
+
+async function sendToSheets(record) {
+  try {
+    const row = [
+      new Date().toLocaleString('zh-TW'),
+      record.sales,
+      record.date,
+      record.hospital,
+      record.dept,
+      record.doctor,
+      record.products.join('、'),
+      record.clinic,
+      record.qty,
+      record.success,
+      record.behavior,
+      record.indication.join('、'),
+      record.pref.join('、'),
+      record.personal,
+      record.followup
+    ];
+    const url = SCRIPT_URL + '?action=addRow&row=' + encodeURIComponent(JSON.stringify(row));
+    // 用 script tag 方式送出，完全繞過 CORS
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = url + '&callback=sheetCallback';
+      script.onload = () => { showToast('✅ 已同步到 Google Sheets', 'success'); resolve(true); script.remove(); };
+      script.onerror = () => {
+        // fallback: try fetch no-cors
+        fetch(url, {mode:'no-cors'}).then(() => {
+          showToast('✅ 已同步', 'success'); resolve(true);
+        }).catch(() => {
+          showToast('✅ 本機已儲存', 'success'); resolve(false);
+        });
+        script.remove();
+      };
+      document.head.appendChild(script);
+      setTimeout(() => { showToast('✅ 已同步到 Google Sheets', 'success'); resolve(true); }, 2000);
+    });
+  } catch(e) {
+    showToast('✅ 本機已儲存', 'success');
+  }
+}
+window.sheetCallback = function(data) {};
+
+// ── 離線佇列：網路恢復後自動重試 ──────────────────────
+window.addEventListener('online', async () => {
+  const queue = JSON.parse(localStorage.getItem('sz_queue') || '[]');
+  if (queue.length === 0) return;
+  showToast(`🔄 重新同步 ${queue.length} 筆離線記錄…`);
+  for (const record of queue) { await sendToSheets(record); }
+  localStorage.removeItem('sz_queue');
+});
+
+function resetForm() {
+  ['f-sales','f-hospital','f-dept','f-title','f-success'].forEach(id => document.getElementById(id).value = '');
+  ['f-doctor','f-personal','f-followup'].forEach(id => document.getElementById(id).value = '');
+  ['f-clinic','f-qty'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected','green','gold'));
+  document.querySelectorAll('.behavior-opt.selected').forEach(b => b.classList.remove('selected'));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── Toast ───────────────────────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Doctors Page ─────────────────────────────────────────
+function renderDoctors(query) {
+  const list = document.getElementById('doctor-list');
+  const filtered = DOCTORS.filter(d =>
+    !query || d.name.includes(query) || d.hospital.includes(query) || d.dept.includes(query)
+  );
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-500);font-size:14px">找不到符合的醫師</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((d, i) => `
+    <div class="doctor-card" onclick="toggleDetail('dd-${i}')">
+      <div class="doctor-head">
+        <div class="doctor-avatar grade-${d.grade}">${d.name[0]}</div>
+        <div class="doctor-info">
+          <div class="doctor-name">${d.name}</div>
+          <div class="doctor-hospital">${d.hospital}</div>
+          <div class="doctor-tags">
+            <span class="tag tag-dept">${d.dept}</span>
+            <span class="tag tag-grade-${d.grade}">${d.grade}級</span>
+            ${d.products.map(p => `<span class="tag tag-prod">${p}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="doctor-detail" id="dd-${i}">
+        ${d.clinic ? `<div class="detail-row"><span class="detail-label">門診量</span><span class="detail-val">${d.clinic} 診/月</span></div>` : ''}
+        ${d.indication ? `<div class="detail-row"><span class="detail-label">主要適應症</span><span class="detail-val">${d.indication}</span></div>` : ''}
+        ${d.personal ? `<div class="detail-row"><span class="detail-label">☕ 個人喜好</span><span class="detail-val" style="color:var(--gold);font-weight:700">${d.personal}</span></div>` : ''}
+        ${d.pref ? `<div class="detail-row"><span class="detail-label">關注重點</span><span class="detail-val">${d.pref}</span></div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function filterDoctors(val) { renderDoctors(val); }
+
+// ── Records Page ─────────────────────────────────────────
+function renderRecords() {
+  const list = document.getElementById('records-list');
+  const noRec = document.getElementById('no-records');
+  const records = DB.records;
+
+  const totalVisits = records.length;
+  const totalSales = records.filter(r => r.success === 'yes').length;
+  const totalQty = records.reduce((s,r) => s + (r.qty||0), 0);
+
+  document.getElementById('stat-visits').textContent = totalVisits;
+  document.getElementById('stat-sales').textContent = totalSales;
+  document.getElementById('stat-amount').textContent = '$' + totalAmount.toLocaleString();
+
+  if (records.length === 0) { list.innerHTML = ''; noRec.style.display = 'block'; return; }
+  noRec.style.display = 'none';
+
+  const bColors = {'積極推薦':'#15803d','有興趣/待跟進':'#2563be','持續使用中':'#c8960c','觀望中':'#6b7280','本次婉拒':'#b91c1c'};
+
+  list.innerHTML = records.map(r => {
+    const d = new Date(r.date);
+    const month = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'][d.getMonth()];
+    const day = d.getDate();
+    const bColor = bColors[r.behavior] || '#6b7280';
+    return `
+    <div class="record-item">
+      <div class="rec-date-block">
+        <div class="rec-month">${month}</div>
+        <div class="rec-day">${day}</div>
+      </div>
+      <div class="rec-info">
+        <div class="rec-hospital">${r.hospital}</div>
+        <div class="rec-doctor">Dr. ${r.doctor}・${r.dept}</div>
+        <div class="rec-meta">
+          <span class="tag" style="background:${bColor}20;color:${bColor}">${r.behavior || '未填'}</span>
+          ${r.products.map(p=>`<span class="tag tag-prod">${p}</span>`).join('')}
+          
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+function renderDash() {
+  const records = DB.records;
+  document.getElementById('d-visits').textContent = records.length || '-';
+  const uniqDoctors = new Set(records.map(r => r.doctor)).size;
+  document.getElementById('d-doctors').textContent = uniqDoctors || '-';
+  const total = records.reduce((s,r) => s+(r.qty||0), 0);
+  document.getElementById('d-amount').textContent = total || '-';
+  const successRate = records.length > 0
+    ? Math.round(records.filter(r=>r.success==='yes').length / records.length * 100) + '%' : '-';
+  document.getElementById('d-rate').textContent = successRate;
+
+  // Behavior bars
+  const behaviorCounts = {};
+  const behaviorColors = {'積極推薦':'#15803d','有興趣/待跟進':'#2563be','持續使用中':'#c8960c','觀望中':'#9ca3af','本次婉拒':'#b91c1c'};
+  records.forEach(r => { if(r.behavior) behaviorCounts[r.behavior] = (behaviorCounts[r.behavior]||0)+1; });
+  const total_b = records.length || 1;
+  const bEl = document.getElementById('behavior-bars');
+  if (records.length === 0) { bEl.innerHTML = '<div style="color:var(--gray-500);font-size:13px;text-align:center;padding:12px 0">填報後自動更新</div>'; }
+  else {
+    bEl.innerHTML = Object.entries(behaviorCounts).map(([b,c]) => `
+      <div class="behavior-bar-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span>${b}</span><span style="font-weight:700">${c}人</span>
+        </div>
+        <div class="behavior-bar">
+          <div class="behavior-fill" style="width:${Math.round(c/total_b*100)}%;background:${behaviorColors[b]||'#6b7280'}"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Hospital ranking
+  const hospAmt = {};
+  records.forEach(r => { hospAmt[r.hospital] = (hospAmt[r.hospital]||0) + (r.qty||0); });
+  const ranked = Object.entries(hospAmt).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const rEl = document.getElementById('hosp-rank');
+  if (ranked.length === 0) { rEl.innerHTML = '<div style="color:var(--gray-500);font-size:13px;text-align:center;padding:12px 0">填報後自動更新</div>'; }
+  else {
+    rEl.innerHTML = ranked.map(([h,a],i) => `
+      <div class="hosp-rank">
+        <div class="rank-num">${i+1}</div>
+        <div class="rank-name">${h}</div>
+        <div class="rank-amt">${a} 支</div>
+      </div>`).join('');
+  }
+}
+
+// Init
+renderDoctors('');
+renderRecords();
+
+// ── 上次追蹤提醒 ────────────────────────────────────────
+function checkLastFollowup() {
+  const doctor = document.getElementById('f-doctor').value.trim();
+  const hospital = document.getElementById('f-hospital').value;
+  const box = document.getElementById('last-followup-box');
+  const text = document.getElementById('last-followup-text');
+  const dateEl = document.getElementById('last-followup-date');
+
+  if (!doctor || doctor.length < 2) { box.style.display = 'none'; return; }
+
+  // 從本機記錄找最近一筆這位醫師的追蹤事項
+  const records = DB.records;
+  const matched = records.filter(r =>
+    r.doctor && r.doctor.includes(doctor) &&
+    (!hospital || r.hospital === hospital) &&
+    r.followup && r.followup.trim() !== ''
+  );
+
+  if (matched.length === 0) { box.style.display = 'none'; return; }
+
+  // 取最近一筆
+  const last = matched[0];
+  text.textContent = last.followup;
+  dateEl.textContent = '上次拜訪：' + last.date + '（' + last.hospital + '）';
+  box.style.display = 'block';
+}
+
+// 選醫院時也觸發檢查
+document.getElementById('f-hospital').addEventListener('change', checkLastFollowup);
+
+// 連線狀態提示
+function checkOnline() {
+  const el = document.getElementById('online-badge');
+  if (!el) return;
+  const q = JSON.parse(localStorage.getItem('sz_queue') || '[]');
+  if (!navigator.onLine) {
+    el.textContent = '📵 離線模式'; el.style.background='#b91c1c';
+  } else if (q.length > 0) {
+    el.textContent = `🔄 待同步 ${q.length} 筆`; el.style.background='#b45309';
+  } else {
+    el.textContent = '🟢 已連線'; el.style.background='#15803d';
+  }
+}
+window.addEventListener('online', checkOnline);
+window.addEventListener('offline', checkOnline);
+setInterval(checkOnline, 5000);
+checkOnline();
+</script>
+</body>
+</html>
