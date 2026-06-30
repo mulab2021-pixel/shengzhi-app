@@ -145,8 +145,8 @@
     cursor: pointer; transition: all 0.15s;
   }
   .behavior-opt.selected.s1 { border-color: var(--green); background: var(--green-light); }
-  .behavior-opt.selected.s2 { border-color: var(--blue); background: var(--blue-light); }
-  .behavior-opt.selected.s3 { border-color: var(--gold); background: var(--gold-light); }
+  .behavior-opt.selected.s2 { border-color: var(--gold); background: var(--gold-light); }
+  .behavior-opt.selected.s3 { border-color: var(--blue); background: var(--blue-light); }
   .behavior-opt.selected.s4 { border-color: var(--gray-500); background: var(--gray-100); }
   .behavior-opt.selected.s5 { border-color: var(--red); background: var(--red-light); }
   .beh-icon { font-size: 20px; }
@@ -371,7 +371,7 @@
       </div>
       <div class="field">
         <div class="field-label">醫院名稱 <span class="req">必填</span></div>
-        <select id="f-hospital">
+        <select id="f-hospital" onchange="checkSalesLookup(); checkLastFollowup();">
           <option value="">選擇醫院</option>
           <option>長庚-林口</option><option>長庚-土城</option><option>長庚桃園</option>
           <option>長庚-基隆</option><option>長庚-台北</option><option>長庚-高雄</option>
@@ -379,6 +379,12 @@
           <option>台北慈濟</option><option>國泰-台北</option><option>國泰-汐止</option>
           <option>新光醫院</option><option>臺安醫院</option><option>敏盛綜合醫院</option>
         </select>
+      </div>
+      <div id="sales-lookup-box" style="display:none;margin:0 0 4px;border-radius:10px;padding:12px 14px;border:1.5px solid #d1d5db;">
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          📊 客戶銷量速覽
+        </div>
+        <div id="sales-lookup-content" style="font-size:13px;line-height:1.7"></div>
       </div>
       <div class="field">
         <div class="field-label">科別 <span class="req">必填</span></div>
@@ -466,19 +472,19 @@
             </div>
             <div class="beh-radio"><div class="beh-dot"></div></div>
           </div>
-          <div class="behavior-opt s2" onclick="selectBehavior(this)" data-val="有興趣/待跟進">
-            <div class="beh-icon">🔵</div>
-            <div class="beh-text">
-              <div class="beh-name">有興趣，待跟進</div>
-              <div class="beh-desc">表達興趣，尚在評估</div>
-            </div>
-            <div class="beh-radio"><div class="beh-dot"></div></div>
-          </div>
-          <div class="behavior-opt s3" onclick="selectBehavior(this)" data-val="持續使用中">
+          <div class="behavior-opt s2" onclick="selectBehavior(this)" data-val="持續使用中">
             <div class="beh-icon">🟡</div>
             <div class="beh-text">
               <div class="beh-name">持續穩定使用</div>
               <div class="beh-desc">長期固定開立中</div>
+            </div>
+            <div class="beh-radio"><div class="beh-dot"></div></div>
+          </div>
+          <div class="behavior-opt s3" onclick="selectBehavior(this)" data-val="有興趣/待跟進">
+            <div class="beh-icon">🔵</div>
+            <div class="beh-text">
+              <div class="beh-name">有興趣，待跟進</div>
+              <div class="beh-desc">表達興趣，尚在評估</div>
             </div>
             <div class="beh-radio"><div class="beh-dot"></div></div>
           </div>
@@ -685,7 +691,11 @@ function getChips(groupId) {
 document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 
 // ── Submit ──────────────────────────────────────────────
+let isSubmitting = false;
+
 function submitForm() {
+  if (isSubmitting) return;  // 防止重複點擊送出
+
   const sales = document.getElementById('f-sales').value;
   const date = document.getElementById('f-date').value;
   const hospital = document.getElementById('f-hospital').value;
@@ -720,6 +730,12 @@ function submitForm() {
     return;
   }
 
+  isSubmitting = true;
+  const btn = document.getElementById('btn-submit');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> 送出中…';
+
   const record = {
     id: Date.now(),
     sales, date, hospital, dept, doctor,
@@ -739,7 +755,12 @@ function submitForm() {
   }
 
   // ── 推送到 Google Sheets ──
-  sendToSheets(record);
+  sendToSheets(record).finally(() => {
+    isSubmitting = false;
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.innerHTML = '<span>📤</span> 送出本次拜訪記錄';
+  });
   showToast('📤 填報成功！同步至 Google Sheets…', 'success');
   resetForm();
 }
@@ -807,6 +828,8 @@ function resetForm() {
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
   document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected','green','gold'));
   document.querySelectorAll('.behavior-opt.selected').forEach(b => b.classList.remove('selected'));
+  document.getElementById('sales-lookup-box').style.display = 'none';
+  document.getElementById('last-followup-box').style.display = 'none';
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -984,6 +1007,58 @@ function checkLastFollowup() {
 
 // 選醫院時也觸發檢查
 document.getElementById('f-hospital').addEventListener('change', checkLastFollowup);
+
+// ── 客戶銷量速覽（呼叫 Apps Script 查詢）─────────────────────
+async function checkSalesLookup() {
+  const hospital = document.getElementById('f-hospital').value;
+  const box = document.getElementById('sales-lookup-box');
+  const content = document.getElementById('sales-lookup-content');
+
+  if (!hospital) { box.style.display = 'none'; return; }
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') { box.style.display = 'none'; return; }
+
+  box.style.display = 'block';
+  box.style.background = '#f5f5f5';
+  box.style.borderColor = '#d1d5db';
+  content.innerHTML = '<span style="color:#888">查詢中…</span>';
+
+  try {
+    const url = SCRIPT_URL + '?action=lookupSales&hospital=' + encodeURIComponent(hospital) + '&product=摩舒益多';
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.found) {
+      box.style.background = '#f5f5f5';
+      box.style.borderColor = '#d1d5db';
+      content.innerHTML = '<span style="color:#888">' + (data.msg || '查無資料') + '</span>';
+      return;
+    }
+
+    const statusColors = {
+      '⚠ 本月斷貨': {bg:'#fce4e4', border:'#dc2626', text:'#991b1b'},
+      '⬇ 低於月均': {bg:'#fce4d6', border:'#ea580c', text:'#9a3412'},
+      '⬆ 高於月均': {bg:'#dcfce7', border:'#16a34a', text:'#15803d'},
+      '→ 持平': {bg:'#e8f0fc', border:'#2563be', text:'#1e40af'},
+      '尚無資料': {bg:'#f5f5f5', border:'#9ca3af', text:'#6b7280'}
+    };
+    const sc = statusColors[data.status] || statusColors['尚無資料'];
+    box.style.background = sc.bg;
+    box.style.borderColor = sc.border;
+
+    content.innerHTML =
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+        '<span>上月銷量</span><b>' + (data.lastMonth || 0) + '</b>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">' +
+        '<span>近3月月均</span><b>' + Math.round(data.avg3Month || 0) + '</b>' +
+      '</div>' +
+      '<div style="font-weight:700;color:' + sc.text + ';margin-bottom:2px;">' + data.status + '</div>' +
+      '<div style="font-size:12px;color:' + sc.text + ';opacity:0.85;">' + data.advice + '</div>';
+  } catch(e) {
+    box.style.background = '#f5f5f5';
+    content.innerHTML = '<span style="color:#888">查詢失敗，可離線繼續填報</span>';
+  }
+}
 
 // 連線狀態提示
 function checkOnline() {
