@@ -407,7 +407,7 @@
         <div id="last-followup-date" style="font-size:11px;color:#b45309;margin-top:4px;opacity:0.8"></div>
       </div>
       <div class="field">
-        <div class="field-label">醫師職稱 <span class="opt">選填</span></div>
+        <div class="field-label">醫師職稱 <span class="req">必填</span></div>
         <select id="f-title">
           <option value="">選擇職稱</option>
           <option>主治醫師</option><option>住院醫師</option><option>科主任</option>
@@ -426,7 +426,7 @@
       </div>
       <div class="field">
         <div class="field-label">醫師門診量 <span class="req">必填</span></div>
-        <input type="number" id="f-clinic" placeholder="診/月，如：120" min="0">
+        <input type="number" id="f-clinic" placeholder="位患者/診，如：120" min="0">
       </div>
     </div>
   </div>
@@ -440,7 +440,7 @@
     <div class="section-body">
       <div class="field">
         <div class="field-label">預期銷售數量 <span class="req">必填</span></div>
-        <input type="number" id="f-qty" placeholder="支/盒/台" min="0">
+        <input type="number" id="f-qty" placeholder="顆/台/盒，如：100" min="0">
       </div>
       <div class="field">
         <div class="field-label">本次是否完成銷售 <span class="req">必填</span></div>
@@ -508,7 +508,7 @@
       </div>
 
       <div class="field">
-        <div class="field-label">主要適應症 <span class="opt">選填，可多選</span></div>
+        <div class="field-label">主要適應症 <span class="req">必填，可多選</span></div>
         <div class="chip-group" id="chips-indi">
           <div class="chip green" data-val="過敏/氣喘" onclick="toggleChip(this,'green')">過敏/氣喘</div>
           <div class="chip green" data-val="感冒/上呼吸道" onclick="toggleChip(this,'green')">感冒/上呼吸道</div>
@@ -521,7 +521,7 @@
       </div>
 
       <div class="field">
-        <div class="field-label">醫師喜好/關注重點 <span class="opt">選填，可多選</span></div>
+        <div class="field-label">醫師喜好/關注重點 <span class="req">必填，可多選</span></div>
         <div class="chip-group" id="chips-pref">
           <div class="chip gold" data-val="療效/臨床實證" onclick="toggleChip(this,'gold')">療效/臨床實證</div>
           <div class="chip gold" data-val="副作用低/安全性" onclick="toggleChip(this,'gold')">副作用低/安全性</div>
@@ -533,12 +533,12 @@
       </div>
 
       <div class="field">
-        <div class="field-label">個人小習慣/喜好 <span class="opt">選填</span></div>
+        <div class="field-label">個人小習慣/喜好 <span class="req">必填</span></div>
         <input type="text" id="f-personal" placeholder="如：熱美式咖啡、I人需多拜訪…">
       </div>
 
       <div class="field">
-        <div class="field-label">下週追蹤事項 <span class="opt">選填</span></div>
+        <div class="field-label">追蹤事項 <span class="req">必填</span></div>
         <textarea id="f-followup" placeholder="如：帶最新文獻、申請進藥、安排說明會…"></textarea>
       </div>
     </div>
@@ -718,12 +718,18 @@ function submitForm() {
   if (!hospital) errors.push('醫院名稱');
   if (!dept) errors.push('科別');
   if (!doctor) errors.push('醫師姓名');
+  const title = document.getElementById('f-title').value;
+  if (!title) errors.push('醫師職稱');
   if (products.length === 0) errors.push('帶入產品');
   if (!clinic) errors.push('門診量');
   if (!qty) errors.push('銷售數量');
 
   if (!success) errors.push('是否完成銷售');
   if (!behavior) errors.push('醫師處置行為');
+  if (indication.length === 0) errors.push('主要適應症');
+  if (pref.length === 0) errors.push('醫師喜好/關注重點');
+  if (!personal) errors.push('個人小習慣/喜好');
+  if (!followup) errors.push('追蹤事項');
 
   if (errors.length > 0) {
     showToast('請填寫：' + errors.join('、'), 'error');
